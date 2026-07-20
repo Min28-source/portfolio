@@ -8,39 +8,43 @@ gsap.registerPlugin(useGSAP);
 
 const Work = () => {
   useGSAP(() => {
-    function setTranslateX() {
-      const boxes = document.querySelectorAll(".work-box");
-      if (!boxes.length) return 0;
-      let totalWidth = 0;
-      boxes.forEach((box) => {
-        totalWidth += (box as HTMLElement).offsetWidth;
+    let mm = gsap.matchMedia();
+
+    mm.add("(min-width: 1025px)", () => {
+      function setTranslateX() {
+        const boxes = document.querySelectorAll(".work-box");
+        if (!boxes.length) return 0;
+        let totalWidth = 0;
+        boxes.forEach((box) => {
+          totalWidth += (box as HTMLElement).offsetWidth;
+        });
+        const result = totalWidth - window.innerWidth;
+        return result > 0 ? result + 200 : 0;
+      }
+
+      let timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".work-section",
+          start: "top top",
+          end: () => `+=${setTranslateX()}`, // Use actual scroll width
+          scrub: true,
+          pin: true,
+          id: "work",
+          invalidateOnRefresh: true,
+        },
       });
-      const result = totalWidth - window.innerWidth;
-      return result > 0 ? result + 200 : 0;
-    }
 
-    let timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".work-section",
-        start: "top top",
-        end: () => `+=${setTranslateX()}`, // Use actual scroll width
-        scrub: true,
-        pin: true,
-        id: "work",
-        invalidateOnRefresh: true,
-      },
+      timeline.to(".work-flex", {
+        x: () => -setTranslateX(),
+        ease: "none",
+      });
+
+      // Clean up (optional, good practice)
+      return () => {
+        timeline.kill();
+        ScrollTrigger.getById("work")?.kill();
+      };
     });
-
-    timeline.to(".work-flex", {
-      x: () => -setTranslateX(),
-      ease: "none",
-    });
-
-    // Clean up (optional, good practice)
-    return () => {
-      timeline.kill();
-      ScrollTrigger.getById("work")?.kill();
-    };
   }, []);
   return (
     <div className="work-section" id="work">
